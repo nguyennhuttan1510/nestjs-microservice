@@ -1,0 +1,12 @@
+{
+  "name": "authentication",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Tan Nguyen <nhuttan.nguyen@mafc.com.vn>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@nestjs/schedule": "^3.0.2",
+    "@types/cron": "^2.4.0"
+  }
+}

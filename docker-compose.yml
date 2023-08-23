@@ -1,0 +1,63 @@
+version: '3'
+services:
+  insurance:
+    env_file:
+      - .env
+    image: insurance
+    build:
+      context: .
+    ports:
+      - "4000:4000"
+      - "4002:4002"
+      - "8384:8384"
+    expose:
+      - "8384"
+      - "4002"
+      - "4000"
+    networks:
+      - test
+    depends_on:
+      - db
+
+  db:
+    # NOTE: Uncomment the line below if you are using Mac with m1/m2 chip
+    # platform: linux/x86_64
+    container_name: mysql-db
+    image: mysql:5.7
+    # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+    # (this is just an example, not intended to be a production configuration)
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: $PASSWORD_DATABASE
+    volumes:
+      - ./mysql-db:/docker-entrypoint-initdb.d/
+      - ./db_data:/var/lib/mysql
+      - ./database:/tmp/database
+    command: mysqld --init-file="/tmp/database/init-script.sql"
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
+    networks:
+      - test
+
+#  db:
+#    container_name: db
+#    image: postgres:12
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: o0i9u8y7
+#    ports:
+#      - "5432:5432"
+##    expose:
+##      - 5432
+#    volumes:
+#      - ./pgdata:/var/lib/postgresql/data
+#    networks:
+#      - test
+#    stdin_open: true
+#    tty: true
+
+networks:
+  test:

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/api/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/api/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/api",
+  "projects": {
+    "api": {
+      "type": "application",
+      "root": "apps/api",
+      "entryFile": "main",
+      "sourceRoot": "apps/api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api/tsconfig.app.json"
+      }
+    },
+    "authentication": {
+      "type": "application",
+      "root": "apps/authentication",
+      "entryFile": "main",
+      "sourceRoot": "apps/authentication/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/authentication/tsconfig.app.json"
+      }
+    },
+    "contract": {
+      "type": "application",
+      "root": "apps/contract",
+      "entryFile": "main",
+      "sourceRoot": "apps/contract/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/contract/tsconfig.app.json"
+      }
+    },
+    "interceptor": {
+      "type": "library",
+      "root": "libs/interceptor",
+      "entryFile": "index",
+      "sourceRoot": "libs/interceptor/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/interceptor/tsconfig.lib.json"
+      }
+    },
+    "exception": {
+      "type": "library",
+      "root": "libs/exception",
+      "entryFile": "index",
+      "sourceRoot": "libs/exception/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/exception/tsconfig.lib.json"
+      }
+    }
+  }
+}
