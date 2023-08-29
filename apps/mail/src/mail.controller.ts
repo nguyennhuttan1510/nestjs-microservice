@@ -8,6 +8,7 @@ export class MailController {
 
   @Post('mailer')
   async sendMail(@Body() bodyMail: SendMailDTODto) {
+    console.log('this is mailer')
     const option: SendMailerOption = {
       from: bodyMail.from || process.env.GOOGLE_USERNAME_APPLICATION,
       to: bodyMail.to,
