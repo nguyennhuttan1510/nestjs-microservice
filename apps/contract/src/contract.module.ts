@@ -2,14 +2,6 @@ import { Module } from '@nestjs/common';
 import { ContractController } from './contract.controller';
 import { ContractService } from './contract.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '@authentication/users/entities/user.entity';
-import { Account } from '@authentication/account/entities/account.entity';
-import { Bank } from '@authentication/bank/entities/bank.entity';
-import { Car } from '@authentication/car/entities/car.entity';
-import { Contract } from '@authentication/contract/entities/contract.entity';
-import { Address } from '@authentication/address/entities/address.entity';
-import { Staff } from '@authentication/staff/entities/staff.entity';
-import { StaffContractEntity } from '@authentication/enittys/staff-contract.entity';
 import { ContractEntity } from './entities/contract.entities';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
@@ -31,7 +23,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     TypeOrmModule.forFeature([ContractEntity]),
     HttpModule.register({
-      baseURL: 'http://localhost:4000',
+      baseURL: process.env.ENDPOINT_AUTHENTICATION,
       headers: {
         'Content-Type': 'application/json',
       },

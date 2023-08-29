@@ -10,8 +10,8 @@ import { PersonalInformationModel } from '@authentication/model/personal-informa
 import { Account } from '@authentication/account/entities/account.entity';
 import { Bank } from '@authentication/bank/entities/bank.entity';
 import { Address } from '@authentication/address/entities/address.entity';
-import { Contract } from '@authentication/contract/entities/contract.entity';
 import { Car } from '@authentication/car/entities/car.entity';
+import { Auth } from '@authentication/auth/entities/auth.entity';
 
 @Entity('users')
 export class User extends PersonalInformationModel {
@@ -36,8 +36,8 @@ export class User extends PersonalInformationModel {
   @OneToMany(() => Address, (address) => address.user)
   addresses: Address[];
 
-  @OneToMany(() => Contract, (contract) => contract.user)
-  contracts: Contract[];
+  // @OneToMany(() => Contract, (contract) => contract.user)
+  // contracts: Contract[];
 
   @OneToMany(() => Car, (car) => car.user)
   cars: Car[];

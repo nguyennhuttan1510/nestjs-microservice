@@ -4,11 +4,11 @@ import { IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 export class CreateAddressDto {
   @IsOptional()
   @IsNumber()
-  user_id: number;
+  user_id?: number;
 
   @IsOptional()
   @IsNumber()
-  staff_id: number;
+  staff_id?: number;
 
   @IsString()
   city: string;

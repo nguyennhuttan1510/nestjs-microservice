@@ -8,7 +8,7 @@ import { map, Observable } from 'rxjs';
 
 export interface Response<T> {
   data: T;
-  status: boolean;
+  status?: boolean;
   message?: string;
 }
 
@@ -18,11 +18,12 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<Response<T>> {
+    // console.log('context', context)
     return next.handle().pipe(
-      map((data) => ({
-        data: data.data || null,
-        status: data.status,
-        message: data?.message,
+      map(({ data, status = true, message = 'success' }: Response<T>) => ({
+        data: data || null,
+        status: status,
+        message: message,
       })),
     );
   }

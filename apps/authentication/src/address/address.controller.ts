@@ -6,16 +6,14 @@ import {
   Patch,
   Param,
   Delete,
-  UseFilters,
 } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { HTTPExceptionFilter } from '@app/exception/http-exception.filter';
 import { Response } from '@app/interceptor/response.interceptor';
 import { Address } from './entities/address.entity';
 import { DeleteResult } from 'typeorm';
-@UseFilters(HTTPExceptionFilter)
+
 @Controller('address')
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}

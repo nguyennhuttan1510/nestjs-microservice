@@ -7,6 +7,7 @@ import { AccountModule } from '../account/account.module';
 import { AddressModule } from '../address/address.module';
 import { BankModule } from '../bank/bank.module';
 import { CarModule } from '../car/car.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -15,6 +16,12 @@ import { CarModule } from '../car/car.module';
     BankModule,
     CarModule,
     forwardRef(() => AddressModule),
+    HttpModule.register({
+      baseURL: process.env.ENDPOINT_AUTHENTICATION,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }),
   ],
   controllers: [UsersController],
   providers: [UsersService],

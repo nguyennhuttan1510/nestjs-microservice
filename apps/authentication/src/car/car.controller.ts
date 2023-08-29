@@ -1,34 +1,79 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CarService } from './car.service';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
+import { Car } from '@authentication/car/entities/car.entity';
+import { Response } from '@app/interceptor';
+import { DeleteResult } from 'typeorm';
+import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from '../../../mail/src/mail.service';
 
 @Controller('car')
 export class CarController {
-  constructor(private readonly carService: CarService) {}
+  constructor(
+    private readonly carService: CarService,
+    // private readonly mailerService: MailService,
+  ) {}
 
   @Post()
-  create(@Body() createCarDto: CreateCarDto) {
-    return this.carService.create(createCarDto);
+  async create(@Body() createCarDto: CreateCarDto): Promise<Response<Car>> {
+    const car: Car = await this.carService.create(createCarDto);
+    return {
+      data: car,
+      status: true,
+      message: 'Create car success',
+    };
   }
 
   @Get()
-  findAll() {
-    return this.carService.findAll();
+  async findAll(): Promise<Response<Car[]>> {
+    const cars: Car[] = await this.carService.findAll();
+    // this.mailerService.sendMail();
+    return {
+      data: cars,
+      status: true,
+      message: 'Get cars success',
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.carService.findOne(+id);
+  async findOne(@Param('id') id: string): Promise<Response<Car>> {
+    const car: Car = await this.carService.findOne(+id);
+    return {
+      data: car,
+      status: true,
+      message: 'Get car success',
+    };
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCarDto: UpdateCarDto) {
-    return this.carService.update(+id, updateCarDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateCarDto: UpdateCarDto,
+  ): Promise<Response<Car>> {
+    const car: Car = await this.carService.update(+id, updateCarDto);
+    return {
+      data: car,
+      status: true,
+      message: 'Update car success',
+    };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.carService.remove(+id);
+  async remove(@Param('id') id: string): Promise<Response<DeleteResult>> {
+    const result = await this.carService.remove(+id);
+    return {
+      data: result,
+      status: true,
+      message: 'Delete car success',
+    };
   }
 }

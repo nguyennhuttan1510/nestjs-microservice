@@ -6,26 +6,18 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  UseFilters,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 
-import { HTTPExceptionFilter } from '@app/exception/http-exception.filter';
 import { Account } from '@authentication/account/entities/account.entity';
-import {
-  Response,
-  ResponseInterceptor,
-} from '@app/interceptor/response.interceptor';
+import { Response } from '@app/interceptor/response.interceptor';
 
-@UseFilters(HTTPExceptionFilter)
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @UseInterceptors(ResponseInterceptor)
   @Post()
   async create(
     @Body() createAccountDto: CreateAccountDto,

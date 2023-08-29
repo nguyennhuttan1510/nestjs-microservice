@@ -6,15 +6,13 @@ import {
   Param,
   Patch,
   Post,
-  UseFilters,
 } from '@nestjs/common';
 import { ContractService } from './contract.service';
 import { Response } from '@app/interceptor/response.interceptor';
-import { HTTPExceptionFilter } from '@app/exception/http-exception.filter';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { ContractEntity } from './entities/contract.entities';
 import { UpdateContractDto } from './dto/update-contract.dto';
-@UseFilters(HTTPExceptionFilter)
+
 @Controller('contract')
 export class ContractController {
   constructor(private readonly contractService: ContractService) {}

@@ -25,7 +25,6 @@ export class CarService {
       };
       return await this.carRepository.save(car);
     } catch (e) {
-      console.log(e);
       throw new InternalServerErrorException('Failed to create info car', {
         cause: new Error(e),
       });

@@ -1,22 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { ApiModule } from './api.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
+import { ResponseInterceptor } from '@app/interceptor';
+import { HTTPExceptionFilter } from '@app/exception';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
-  // app.connectMicroservice<MicroserviceOptions>({
-  //   transport: Transport.TCP,
-  //   options: {
-  //     host: '127.0.0.1',
-  //     port: 8888,
-  //   },
-  // });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
     }),
   );
+  app.useGlobalFilters(new HTTPExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
   await app.listen(8384);
 }
 bootstrap();

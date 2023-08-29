@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ContractModule } from './contract.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
-import { createDatabase, dropDatabase } from 'typeorm-extension';
+import { HTTPExceptionFilter } from '@app/exception';
+import { ResponseInterceptor } from '@app/interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(ContractModule);
@@ -18,14 +18,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  //
-  // await (async () => {
-  //   await createDatabase({ ifNotExist: true });
-  //
-  //   await dropDatabase({ ifExist: true });
-  //
-  //   process.exit(0);
-  // })();
+  app.useGlobalFilters(new HTTPExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   await app.startAllMicroservices();
   await app.listen(4002);

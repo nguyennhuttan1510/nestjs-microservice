@@ -18,29 +18,35 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/monorepo/test/jest-e2e.json",
-    "build:all": "concurrently \"nest build\" \"nest build authentication\" \"nest build contract\"",
-    "start:all": "concurrently --kill-others \"nest start\" \"nest start authentication\" \"nest start contract\"",
-    "start:dev:all": "concurrently --kill-others \"nest start --watch\" \"nest start authentication --watch\" \"nest start contract --watch\"",
-    "start:dev:prod": "concurrently \"node dist/apps/authentication/main\"  \"node dist/apps/api/main\" \"node dist/apps/contract/main\""
+    "build:all": "concurrently \"nest build\" \"nest build authentication\" \"nest build contract\" \"nest build mail\"",
+    "start:all": "concurrently --kill-others \"nest start\" \"nest start authentication\" \"nest start contract\" \"nest start mail\"",
+    "start:dev:all": "concurrently --kill-others \"nest start --watch\" \"nest start authentication --watch\" \"nest start contract --watch\" \"nest start mail --watch\"",
+    "start:dev:prod": "concurrently \"node dist/apps/authentication/main\"  \"node dist/apps/api/main\" \"node dist/apps/contract/main\" \"node dist/apps/mail/main\""
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.9.1",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
+    "@nestjs/jwt": "^10.1.0",
     "@nestjs/mapped-types": "^2.0.2",
     "@nestjs/microservices": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/typeorm": "^10.0.0",
+    "@types/bcrypt": "^5.0.0",
     "axios": "^1.4.0",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "mysql2": "^3.6.0",
+    "nodemailer": "^6.9.4",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "typeorm": "^0.3.17",
-    "typeorm-extension": "^3.0.1"
+    "typeorm-extension": "^3.0.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -91,7 +97,8 @@
       "^@app/repository(|/.*)$": "<rootDir>/libs/repository/src/$1",
       "^@app/interceptor(|/.*)$": "<rootDir>/libs/interceptor/src/$1",
       "^@app/exception(|/.*)$": "<rootDir>/libs/exception/src/$1",
-      "^@app/http-service(|/.*)$": "<rootDir>/libs/http-service/src/$1"
+      "^@app/http-service(|/.*)$": "<rootDir>/libs/http-service/src/$1",
+      "^@app/http(|/.*)$": "<rootDir>/libs/http/src/$1"
     }
   }
 }

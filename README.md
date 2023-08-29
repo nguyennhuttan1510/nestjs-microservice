@@ -32,17 +32,30 @@
 $ yarn install
 ```
 
-## Running the app
+## Running the app at local
 
 ```bash
-# development
-$ yarn run start
+#Copy variable env to .env.local
+HOST_DATABASE=[Ethernet - IPv4]
+
+# build and run container mysql database
+$ docker compose up -d --build db
 
 # watch mode
 $ yarn run start:dev
+```
 
-# production mode
-$ yarn run start:prod
+## Running the app at docker container
+
+```bash
+#Copy variable env to .env.production
+HOST_DATABASE=[Ethernet - IPv4]
+
+# build containers
+$ docker compose build --no-cache
+
+# run containers
+$ docker compose up -d
 ```
 
 ## Test
@@ -57,6 +70,14 @@ $ yarn run test:e2e
 # test coverage
 $ yarn run test:cov
 ```
+--------------------------------------
+## Services App
+* <h5>Authentication: http://[host]:4000</h5>
+* <h5>Contract: http://[host]:4002</h5>
+* <h5>Database: http://[host]:3306</h5>
+
+## Gateway
+* <h5>API: http://[host]:8384</h5>
 
 ## Support
 

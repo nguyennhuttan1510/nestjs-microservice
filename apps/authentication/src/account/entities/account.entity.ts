@@ -2,12 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '@authentication/users/entities/user.entity';
 import { Staff } from '@authentication/staff/entities/staff.entity';
+import { Auth } from '@authentication/auth/entities/auth.entity';
 
 @Entity('accounts')
 export class Account {
@@ -35,4 +37,7 @@ export class Account {
     onDelete: 'CASCADE',
   })
   staff: Staff;
+
+  @OneToMany(() => Auth, (auth) => auth.account)
+  auths: Auth[];
 }

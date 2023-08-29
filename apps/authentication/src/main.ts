@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AuthenticationModule } from './authentication.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { createDatabase, dropDatabase } from 'typeorm-extension';
+import { ValidationPipe } from '@nestjs/common';
+import { HTTPExceptionFilter } from '@app/exception';
+import { ResponseInterceptor } from '@app/interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AuthenticationModule);
   // app.connectMicroservice<MicroserviceOptions>({
@@ -17,14 +17,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-
-  // await (async () => {
-  //   await createDatabase({ ifNotExist: true });
-  //
-  //   await dropDatabase({ ifExist: true });
-  //
-  //   process.exit(0);
-  // })();
+  app.useGlobalFilters(new HTTPExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   await app.startAllMicroservices();
   await app.listen(4000);

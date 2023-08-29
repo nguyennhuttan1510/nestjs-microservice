@@ -24,7 +24,7 @@ export class CreateCarDto {
   origin: string;
 
   @IsIn([PURPOSE_USAGE.USAGE, PURPOSE_USAGE.OTHER])
-  purpose_of_usage: PURPOSE_USAGE;
+  purpose_of_usage: string;
 
   @IsNumber()
   value_of: number;

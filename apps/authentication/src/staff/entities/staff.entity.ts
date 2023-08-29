@@ -10,7 +10,6 @@ import { PersonalInformationModel } from '@authentication/model/personal-informa
 import { Bank } from '@authentication/bank/entities/bank.entity';
 import { Address } from '@authentication/address/entities/address.entity';
 import { Account } from '@authentication/account/entities/account.entity';
-import { Contract } from "@authentication/contract/entities/contract.entity";
 
 @Entity('staff')
 export class Staff extends PersonalInformationModel {
@@ -32,9 +31,9 @@ export class Staff extends PersonalInformationModel {
   @JoinColumn({ name: 'account_id' })
   account: Account;
 
-  @ManyToMany(() => Contract, (contract) => contract.staffs, {
-    onDelete: 'NO ACTION',
-    onUpdate: 'NO ACTION',
-  })
-  contracts: Contract[];
+  // @ManyToMany(() => Contract, (contract) => contract.staffs, {
+  //   onDelete: 'NO ACTION',
+  //   onUpdate: 'NO ACTION',
+  // })
+  // contracts: Contract[];
 }

@@ -10,6 +10,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { User } from '@authentication/users/entities/user.entity';
 import { Response } from '@app/interceptor';
 import { Staff } from '@authentication/staff/entities/staff.entity';
+import { Car } from '@authentication/car/entities/car.entity';
 
 @Injectable()
 export class ContractService {
@@ -45,40 +46,40 @@ export class ContractService {
       const contract: ContractEntity = await this.contractRepository.findOneBy({
         contract_id: id,
       });
-      console.log('contract', contract);
       const user: AxiosResponse<Response<User>> = await firstValueFrom(
-        this.httpService
-          .get(`http://localhost:4000/users/${contract.user_id}`)
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw `${error.response.data}`;
-            }),
-          ),
+        this.httpService.get(`/users/${contract.user_id}`).pipe(
+          catchError((error: AxiosError) => {
+            throw `${error.response.data}`;
+          }),
+        ),
       );
-      console.log('user', user)
       const staff: AxiosResponse<Response<Staff>> = await firstValueFrom(
-        this.httpService
-          .get(`http://localhost:4000/staff/${contract.staff_id}`)
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw `${error.response.data}`;
-            }),
-          ),
+        this.httpService.get(`/staff/${contract.staff_id}`).pipe(
+          catchError((error: AxiosError) => {
+            throw `${error.response.data}`;
+          }),
+        ),
       );
       const staffManager: AxiosResponse<Response<Staff>> = await firstValueFrom(
-        this.httpService
-          .get(`http://localhost:4000/staff/${contract.staff_manager_id}`)
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw `${error.response.data}`;
-            }),
-          ),
+        this.httpService.get(`/staff/${contract.staff_manager_id}`).pipe(
+          catchError((error: AxiosError) => {
+            throw `${error.response.data}`;
+          }),
+        ),
+      );
+      const objectInsured: AxiosResponse<Response<Car>> = await firstValueFrom(
+        this.httpService.get(`/car/${contract.object_insured_id}`).pipe(
+          catchError((error: AxiosError) => {
+            throw `${error.response.data}`;
+          }),
+        ),
       );
       return {
         contract_id: contract.contract_id,
         staff: staff.data.data,
         staffManager: staffManager.data.data,
         user: user.data.data,
+        object_insured: objectInsured.data.data,
         created_at: contract.created_at,
         updated_at: contract.updated_at,
       };
