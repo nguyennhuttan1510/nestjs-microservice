@@ -1,11 +1,12 @@
-import { IsArray, IsObject, IsString } from 'class-validator';
+import { IsArray, IsObject, IsOptional, IsString } from 'class-validator';
 
-export class SendMailDTODto {
+export class SendMailDTO {
   @IsString()
+  @IsOptional()
   from?: string;
 
   @IsArray()
-  to: string;
+  to: string[];
 
   @IsString()
   subject: string;

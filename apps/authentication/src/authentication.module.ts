@@ -20,7 +20,9 @@ import { Auth } from '@authentication/auth/entities/auth.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.HOST_DATABASE,

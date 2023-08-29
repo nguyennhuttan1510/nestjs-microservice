@@ -33,12 +33,6 @@ import { HttpModule } from '@nestjs/axios';
         },
       },
     }),
-    HttpModule.register({
-      baseURL: process.env.ENDPOINT_AUTHENTICATION,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
   ],
   controllers: [MailController],
   providers: [MailService],

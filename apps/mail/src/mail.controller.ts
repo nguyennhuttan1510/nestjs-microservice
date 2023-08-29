@@ -1,14 +1,13 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { MailService, SendMailerOption } from './mail.service';
-import { SendMailDTODto } from './dto/sendMailDTO.dto';
+import { SendMailDTO } from './dto/mail-sender.dto';
 
 @Controller()
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 
   @Post('mailer')
-  async sendMail(@Body() bodyMail: SendMailDTODto) {
-    console.log('this is mailer')
+  async sendMail(@Body() bodyMail: SendMailDTO) {
     const option: SendMailerOption = {
       from: bodyMail.from || process.env.GOOGLE_USERNAME_APPLICATION,
       to: bodyMail.to,

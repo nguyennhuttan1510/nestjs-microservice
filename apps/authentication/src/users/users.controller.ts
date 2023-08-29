@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,11 +15,11 @@ import { MessagePattern } from '@nestjs/microservices';
 import { User } from './entities/user.entity';
 import { Response } from '@app/interceptor/response.interceptor';
 import { DeleteResult } from 'typeorm';
-import { AxiosError, AxiosResponse } from 'axios/index';
-import { Staff } from '@authentication/staff/entities/staff.entity';
+import { AxiosResponse } from 'axios/index';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { SendMailDTODto } from '../../../mail/src/dto/sendMailDTO.dto';
+import { SendMailDTO } from '../../../mail/src/dto/mail-sender.dto';
+import { Public } from '@authentication/auth/decorators/public.decarators';
 
 @Controller('users')
 export class UsersController {
@@ -27,25 +28,31 @@ export class UsersController {
     private readonly httpService: HttpService,
   ) {}
 
+  @Public()
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<Response<User>> {
     const user = await this.usersService.create(createUserDto);
-    const payload: SendMailDTODto = {
-      to: 'tannn@grooo.vn',
+    const payload: SendMailDTO = {
+      to: ['tannn@grooo.vn'],
       subject: '[Confirm] Verify Account',
       template: 'confirm_verify_email',
       context: {
         name: 'Nguyen Nhut Tan',
       },
     };
-    const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
-      this.httpService.post(`/mailer/`, payload).pipe(
-        catchError((error: AxiosError) => {
-          throw `${error.response.data}`;
-        }),
-      ),
-    );
-    console.log('mailer', mailer);
+    try {
+      const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
+        this.httpService.post(`/mailer/`, payload).pipe(
+          catchError((error) => {
+            console.log('error', JSON.stringify(error));
+            throw `${error?.response?.data}`;
+          }),
+        ),
+      );
+      console.log('mailer', mailer);
+    } catch (error) {
+      throw new BadRequestException('Send Mail confirm failed');
+    }
     return {
       data: user,
       status: true,
