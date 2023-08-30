@@ -12,7 +12,6 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { MessagePattern } from '@nestjs/microservices';
 import { User } from './entities/user.entity';
 import { Response } from '@app/interceptor/response.interceptor';
 import { DeleteResult } from 'typeorm';
@@ -21,6 +20,10 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Public } from '@authentication/auth/decorators/public.decarators';
 import { ConfirmEmailDto } from '../../../mail/src/dto/confirm-email.dto';
+
+export interface ExtendTypeUser {
+  passwordGenerate: string;
+}
 
 @Controller('users')
 export class UsersController {
@@ -31,13 +34,18 @@ export class UsersController {
 
   @Public()
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<Response<User>> {
+  async create(
+    @Body() createUserDto: CreateUserDto & ExtendTypeUser,
+  ): Promise<Response<User>> {
     const randomCodeVerify = Math.floor(Math.random() * 100);
     const url = `${process.env.ENDPOINT_AUTHENTICATION}/users/confirm?national_id=${createUserDto.national_id}&code=${randomCodeVerify}`;
+
+    const generatePassword = Math.random().toString(36).slice(-8);
 
     createUserDto = {
       ...createUserDto,
       code_verify: String(randomCodeVerify),
+      passwordGenerate: generatePassword,
     };
     const user = await this.usersService.create(createUserDto);
     if (!user) return;
@@ -49,6 +57,7 @@ export class UsersController {
       context: {
         name: `${user.last_name} ${user.first_name}`,
         username: user.account.username,
+        password: generatePassword,
         link: url,
       },
     };
@@ -71,11 +80,6 @@ export class UsersController {
       message: 'Create user success',
     };
   }
-
-  // @MessagePattern({ cmd: 'get_users' })
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
 
   // @Get()
   // @MessagePattern({ cmd: 'get_users' })

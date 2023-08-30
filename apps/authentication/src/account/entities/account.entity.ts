@@ -22,6 +22,12 @@ export class Account {
   @Column()
   password: string;
 
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  is_first_access: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

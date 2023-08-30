@@ -14,4 +14,7 @@ export class ConfirmEmail {
 
   @IsString()
   link: string;
+
+  @IsString()
+  password: string;
 }

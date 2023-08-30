@@ -18,6 +18,7 @@ import { CreateAccountDto } from '@authentication/account/dto/create-account.dto
 import { Account } from '@authentication/account/entities/account.entity';
 import { Bank } from '@authentication/bank/entities/bank.entity';
 import { CreateCarDto } from '@authentication/car/dto/create-car.dto';
+import { ExtendTypeUser } from './users.controller';
 
 @Injectable()
 export class UsersService {
@@ -39,12 +40,12 @@ export class UsersService {
     };
   };
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto & ExtendTypeUser): Promise<User> {
     try {
       //CREATE ACCOUNT
       const account: CreateAccountDto = {
         username: createUserDto.national_id,
-        password: 'o0i9u8y7',
+        password: createUserDto.passwordGenerate,
       };
       const accountEntity: Account = await this.accountService.create(account);
 
