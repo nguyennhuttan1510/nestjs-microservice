@@ -7,7 +7,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, FindOneOptions, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { AccountService } from '@authentication/account/account.service';
@@ -30,6 +30,15 @@ export class UsersService {
     @Inject(forwardRef(() => AddressService))
     readonly addressService: AddressService,
   ) {}
+
+  private findOneOption = (id: number): FindOneOptions<User> => {
+    return {
+      where: {
+        user_id: id,
+      },
+    };
+  };
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       //CREATE ACCOUNT
@@ -75,6 +84,7 @@ export class UsersService {
         date_of_issue: createUserDto.date_of_issue,
         place_of_issue: createUserDto.place_of_issue,
         birthday: createUserDto.birthday,
+        code_verify: String(createUserDto.code_verify),
 
         account: accountEntity,
         addresses: addressEntityArr,
@@ -99,9 +109,12 @@ export class UsersService {
     }
   }
 
-  findOne(id: number): Promise<User> {
+  findOne(
+    id: number,
+    options: FindOneOptions<User> = this.findOneOption(id),
+  ): Promise<User> {
     try {
-      return this.usersRepository.findOneBy({ user_id: id });
+      return this.usersRepository.findOne(options);
     } catch (e) {
       throw new InternalServerErrorException('Failed to find user', {
         cause: new Error(e),
@@ -142,6 +155,28 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to delete user', {
         cause: new Error(e),
       });
+    }
+  }
+
+  async confirmEmail({
+    national_id,
+    code_verify,
+  }: Pick<User, 'national_id' | 'code_verify'>) {
+    const options: FindOneOptions<User> = {
+      where: {
+        national_id: national_id,
+        code_verify: code_verify,
+      },
+    };
+    try {
+      const user = await this.findOne(null, options);
+      console.log('user', user);
+      if (!user) throw new Error('Verify email failed');
+      this.usersRepository.update(user.user_id, {
+        is_verify_email: true,
+      });
+    } catch (e) {
+      throw e;
     }
   }
 }

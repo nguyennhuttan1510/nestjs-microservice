@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,8 +19,8 @@ import { DeleteResult } from 'typeorm';
 import { AxiosResponse } from 'axios/index';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { SendMailDTO } from '../../../mail/src/dto/mail-sender.dto';
 import { Public } from '@authentication/auth/decorators/public.decarators';
+import { ConfirmEmailDto } from '../../../mail/src/dto/confirm-email.dto';
 
 @Controller('users')
 export class UsersController {
@@ -31,28 +32,39 @@ export class UsersController {
   @Public()
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<Response<User>> {
+    const randomCodeVerify = Math.floor(Math.random() * 100);
+    const url = `${process.env.ENDPOINT_AUTHENTICATION}/users/confirm?national_id=${createUserDto.national_id}&code=${randomCodeVerify}`;
+
+    createUserDto = {
+      ...createUserDto,
+      code_verify: String(randomCodeVerify),
+    };
     const user = await this.usersService.create(createUserDto);
-    const payload: SendMailDTO = {
-      to: ['tannn@grooo.vn'],
+    if (!user) return;
+    console.log('url', url);
+    const payload: ConfirmEmailDto = {
+      to: [createUserDto.email],
       subject: '[Confirm] Verify Account',
       template: 'confirm_verify_email',
       context: {
-        name: 'Nguyen Nhut Tan',
+        name: `${user.last_name} ${user.first_name}`,
+        username: user.account.username,
+        link: url,
       },
     };
     try {
       const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
-        this.httpService.post(`/mailer/`, payload).pipe(
+        this.httpService.post(`/mailer/confirm-verify-email`, payload).pipe(
           catchError((error) => {
             console.log('error', JSON.stringify(error));
             throw `${error?.response?.data}`;
           }),
         ),
       );
-      console.log('mailer', mailer);
     } catch (error) {
       throw new BadRequestException('Send Mail confirm failed');
     }
+
     return {
       data: user,
       status: true,
@@ -65,14 +77,31 @@ export class UsersController {
   //   return this.usersService.findAll();
   // }
 
-  @Get()
-  @MessagePattern({ cmd: 'get_users' })
-  async findAll(): Promise<Response<User[]>> {
-    const users: User[] = await this.usersService.findAll();
+  // @Get()
+  // @MessagePattern({ cmd: 'get_users' })
+  // async findAll(): Promise<Response<User[]>> {
+  //   const users: User[] = await this.usersService.findAll();
+  //   return {
+  //     data: users,
+  //     status: true,
+  //     message: 'Get users success',
+  //   };
+  // }
+
+  @Public()
+  @Get('confirm')
+  async confirmEmail(
+    @Query() queryParams: { national_id: string; code: string },
+  ) {
+    console.log('queryParams', queryParams);
+    await this.usersService.confirmEmail({
+      national_id: queryParams.national_id,
+      code_verify: queryParams.code,
+    });
     return {
-      data: users,
+      data: null,
       status: true,
-      message: 'Get users success',
+      message: `Verify success`,
     };
   }
 

@@ -11,12 +11,17 @@ import { Account } from '@authentication/account/entities/account.entity';
 import { Bank } from '@authentication/bank/entities/bank.entity';
 import { Address } from '@authentication/address/entities/address.entity';
 import { Car } from '@authentication/car/entities/car.entity';
-import { Auth } from '@authentication/auth/entities/auth.entity';
 
 @Entity('users')
 export class User extends PersonalInformationModel {
   @PrimaryGeneratedColumn()
   user_id: number;
+
+  @Column({ nullable: true })
+  code_verify: string;
+
+  @Column({ default: false, type: 'boolean' })
+  is_verify_email: boolean;
 
   @Column({ nullable: true })
   fax: string;

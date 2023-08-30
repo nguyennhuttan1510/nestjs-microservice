@@ -16,6 +16,8 @@ export class CreateUserDto extends PersonalInformationDto {
   @IsString()
   fax: string;
 
+  code_verify?: string;
+
   @IsArray()
   @IsNotEmpty()
   @ValidateNested({ each: true })
