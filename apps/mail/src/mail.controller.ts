@@ -22,7 +22,7 @@ export class MailController {
     };
   }
 
-  @Post('reset-password-email')
+  @Post('reset-password')
   async sendMailResetPassword(@Body() bodyMail: SendMailDTO) {
     const option: SendMailerOption = {
       from: bodyMail.from || process.env.GOOGLE_USERNAME_APPLICATION,

@@ -7,7 +7,12 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, FindOneOptions, Repository } from 'typeorm';
+import {
+  DeleteResult,
+  FindOneOptions,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { User } from './entities/user.entity';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { AccountService } from '@authentication/account/account.service';
@@ -94,9 +99,7 @@ export class UsersService {
       };
       return await this.usersRepository.save(userEntity);
     } catch (e) {
-      throw new InternalServerErrorException('Failed to create user!', {
-        cause: new Error(e),
-      });
+      throw e;
     }
   }
 
@@ -162,7 +165,7 @@ export class UsersService {
   async confirmEmail({
     national_id,
     code_verify,
-  }: Pick<User, 'national_id' | 'code_verify'>) {
+  }: Pick<User, 'national_id' | 'code_verify'>): Promise<UpdateResult> {
     const options: FindOneOptions<User> = {
       where: {
         national_id: national_id,
@@ -171,9 +174,8 @@ export class UsersService {
     };
     try {
       const user = await this.findOne(null, options);
-      console.log('user', user);
-      if (!user) throw new Error('Verify email failed');
-      this.usersRepository.update(user.user_id, {
+      if (!user) throw new InternalServerErrorException('Verify email failed');
+      return await this.usersRepository.update(user.user_id, {
         is_verify_email: true,
       });
     } catch (e) {

@@ -51,6 +51,16 @@ export class AuthController {
     return this.authService.findAll();
   }
 
+  @Get('reset-password')
+  async resetPassword(@Headers('jwt') jwt: Account): Promise<Response<any>> {
+    const mailer = await this.authService.resetPassword(jwt);
+    return {
+      data: mailer,
+      status: true,
+      message: 'Send mail reset password success',
+    };
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.authService.findOne(id);

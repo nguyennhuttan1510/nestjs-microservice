@@ -1,7 +1,9 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -10,6 +12,7 @@ import { Request } from 'express';
 import { IS_PUBLIC_KEY } from './decorators/public.decarators';
 import { AuthService } from '@authentication/auth/auth.service';
 import { Auth } from '@authentication/auth/entities/auth.entity';
+import { ALLOW_FIRST_ACCESS } from '@authentication/auth/decorators/allow_first_access.decorators';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -24,7 +27,12 @@ export class AuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    console.log('isPublic', isPublic);
+
+    const isAllowFirstAccess = this.reflector.getAllAndOverride<boolean>(
+      ALLOW_FIRST_ACCESS,
+      [context.getHandler(), context.getClass()],
+    );
+
     if (isPublic) {
       // 💡 See this condition
       return true;
@@ -35,15 +43,12 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException('Request access token');
     }
+
+    let payload;
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_JWT,
       });
-      //CHECK SESSION IS CANCEL
-      await this.checkTokenCancel(payload?.session_id);
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request.headers['jwt'] = payload;
     } catch (e) {
       const tokenDecode = this.jwtService.decode(token);
       if (typeof tokenDecode === 'object' && tokenDecode.session_id) {
@@ -52,10 +57,21 @@ export class AuthGuard implements CanActivate {
         };
         await this.authService.update(tokenDecode.session_id, authEntity);
       }
+      throw new UnauthorizedException('Token is invalid or expired');
+    }
 
-      throw new UnauthorizedException(
-        e.message || 'Token is invalid or expired',
-      );
+    try {
+      //CHECK SESSION IS CANCEL
+      await this.checkTokenCancel(payload?.session_id);
+      if (!isAllowFirstAccess) {
+        //CHECK IN PROGRESS INTI USER
+        await this.checkIsInProgressInitUser(payload);
+      }
+      // 💡 We're assigning the payload to the request object here
+      // so that we can access it in our route handlers
+      request.headers['jwt'] = payload;
+    } catch (e) {
+      throw e;
     }
     return true;
   }
@@ -66,12 +82,29 @@ export class AuthGuard implements CanActivate {
   }
 
   private async checkTokenCancel(session_id: string): Promise<void> {
-    if (!session_id) throw new Error('Not found session');
-    const auth: Auth = await this.authService.findOne(session_id);
-    if (!auth || auth.cancel) {
-      throw new Error(
-        'Any one is accessing your account!, Please sign in again and change password',
-      );
+    try {
+      if (!session_id)
+        throw new InternalServerErrorException('Not found session');
+      const auth: Auth = await this.authService.findOne(session_id);
+      console.log('auth', auth);
+      if (!auth || auth.cancel) {
+        throw new UnauthorizedException(
+          'Any one is accessing your account!, Please sign in again and change password',
+        );
+      }
+    } catch (e) {
+      throw e;
     }
+  }
+
+  private async checkIsInProgressInitUser(payload) {
+    await this.checkIsFirstTimeAccess(payload);
+  }
+
+  private async checkIsFirstTimeAccess(payload) {
+    if (payload.is_first_access)
+      throw new ForbiddenException(
+        'Can not any access, when you have not change password',
+      );
   }
 }

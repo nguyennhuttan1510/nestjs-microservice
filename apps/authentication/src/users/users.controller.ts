@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   Query,
+  Render,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,6 +21,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Public } from '@authentication/auth/decorators/public.decarators';
 import { ConfirmEmailDto } from '../../../mail/src/dto/confirm-email.dto';
+import Helper from '@authentication/utils/helper';
 
 export interface ExtendTypeUser {
   passwordGenerate: string;
@@ -40,7 +42,7 @@ export class UsersController {
     const randomCodeVerify = Math.floor(Math.random() * 100);
     const url = `${process.env.ENDPOINT_AUTHENTICATION}/users/confirm?national_id=${createUserDto.national_id}&code=${randomCodeVerify}`;
 
-    const generatePassword = Math.random().toString(36).slice(-8);
+    const generatePassword = Helper.generatePassword();
 
     createUserDto = {
       ...createUserDto,
@@ -94,19 +96,22 @@ export class UsersController {
 
   @Public()
   @Get('confirm')
+  @Render('result_verify_email.hbs')
   async confirmEmail(
     @Query() queryParams: { national_id: string; code: string },
   ) {
-    console.log('queryParams', queryParams);
-    await this.usersService.confirmEmail({
+    const result = await this.usersService.confirmEmail({
       national_id: queryParams.national_id,
       code_verify: queryParams.code,
     });
     return {
-      data: null,
-      status: true,
-      message: `Verify success`,
+      message: result.affected ? 'Success' : 'UnSuccess',
     };
+    // return {
+    //   data: null,
+    //   status: true,
+    //   message: `Verify success`,
+    // };
   }
 
   @Get(':id')

@@ -3,8 +3,13 @@ import { AuthenticationModule } from './authentication.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HTTPExceptionFilter } from '@app/exception';
 import { ResponseInterceptor } from '@app/interceptor';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import process from 'process';
 async function bootstrap() {
-  const app = await NestFactory.create(AuthenticationModule);
+  const app = await NestFactory.create<NestExpressApplication>(
+    AuthenticationModule,
+  );
   // app.connectMicroservice<MicroserviceOptions>({
   //   transport: Transport.TCP,
   //   options: {
@@ -19,6 +24,11 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new HTTPExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
+
+  app.setBaseViewsDir(
+    join(__dirname, '..', '..', '..') + '/apps/authentication/src/views/',
+  );
+  app.setViewEngine('hbs');
 
   await app.startAllMicroservices();
   await app.listen(4000);

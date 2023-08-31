@@ -8,9 +8,15 @@ const encryptPassword = async (password: string) => {
 const comparePassword = async (password: string, hashPassword: string) => {
   return await bcrypt.compare(password, hashPassword);
 };
+
+const generatePassword = () => {
+  return Math.random().toString(36).slice(-8);
+};
+
 const Helper = {
   encryptPassword,
   comparePassword,
+  generatePassword,
 };
 
 export default Helper;

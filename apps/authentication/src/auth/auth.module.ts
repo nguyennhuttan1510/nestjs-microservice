@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { UsersModule } from '@authentication/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from '@authentication/auth/auth.guard';
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
   imports: [
@@ -21,8 +22,14 @@ import { AuthGuard } from '@authentication/auth/auth.guard';
         expiresIn: process.env.EXPIRRES_IN || '15m',
       },
     }),
-    AccountModule,
-    UsersModule,
+    HttpModule.register({
+      baseURL: process.env.ENDPOINT_MAILER,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }),
+    forwardRef(() => AccountModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
   providers: [
@@ -32,5 +39,6 @@ import { AuthGuard } from '@authentication/auth/auth.guard';
       useClass: AuthGuard,
     },
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

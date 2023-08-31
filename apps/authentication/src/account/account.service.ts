@@ -1,16 +1,30 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
+import {
+  ChangePasswordAccountDto,
+  UpdateAccountDto,
+} from './dto/update-account.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from '@authentication/account/entities/account.entity';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, Repository, UpdateResult } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import Helper from '@authentication/utils/helper';
+import { AuthService } from '@authentication/auth/auth.service';
+import { AddressService } from '@authentication/address/address.service';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
+    @Inject(forwardRef(() => AuthService))
+    readonly authService: AuthService,
   ) {}
 
   private optionFindAccount(id: number): FindOneOptions<Account> {
@@ -22,6 +36,10 @@ export class AccountService {
   }
 
   async create(createAccountDto: CreateAccountDto) {
+    const { isExisted } = await this.checkExistAccount(
+      createAccountDto.username,
+    );
+    if (isExisted) throw new BadRequestException('Username is existed');
     try {
       const hashPassword = await Helper.encryptPassword(
         createAccountDto.password,
@@ -61,8 +79,8 @@ export class AccountService {
     }
   }
 
-  update(id: number, updateAccountDto: UpdateAccountDto) {
-    return `This action updates a #${id} account`;
+  update(id: number, account: Partial<Account>): Promise<UpdateResult> {
+    return this.accountRepository.update(id, account);
   }
 
   remove(id: number) {
@@ -86,6 +104,37 @@ export class AccountService {
         account: account,
         isExisted: account !== null,
       };
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async changePassword(
+    account: Partial<Account> & { session_id: string },
+    passwordChange: ChangePasswordAccountDto,
+  ): Promise<UpdateResult> {
+    if (passwordChange.newPassword !== passwordChange.confirmPassword)
+      throw new BadRequestException('New password not match');
+
+    try {
+      const { account: accountEntity } = await this.checkExistAccount(
+        account.username,
+      );
+
+      const isMatchPassword = await Helper.comparePassword(
+        passwordChange.oldPassword,
+        accountEntity.password,
+      );
+      if (!isMatchPassword) {
+        throw new BadRequestException('Old password invalid');
+      }
+
+      await this.authService.signout(account.session_id);
+
+      return this.accountRepository.update(accountEntity.account_id, {
+        password: await Helper.encryptPassword(passwordChange.newPassword),
+        is_first_access: false,
+      });
     } catch (e) {
       throw e;
     }

@@ -1,7 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, Repository, UpdateResult } from 'typeorm';
 import { Auth } from '@authentication/auth/entities/auth.entity';
 import { User } from '@authentication/users/entities/user.entity';
 import { Account } from '@authentication/account/entities/account.entity';
@@ -11,14 +17,22 @@ import { UsersService } from '@authentication/users/users.service';
 import Helper from '@authentication/utils/helper';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { v4 as uuidV4 } from 'uuid';
+import { ResetPasswordDto } from '../../../mail/src/dto/reset-password.dto';
+import { AxiosResponse } from 'axios';
+import { Response } from '@app/interceptor';
+import { catchError, firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Auth) private readonly authRepository: Repository<Auth>,
-    private readonly accountService: AccountService,
-    private readonly userService: UsersService,
+    @Inject(forwardRef(() => AccountService))
+    readonly accountService: AccountService,
+    @Inject(forwardRef(() => UsersService))
+    readonly userService: UsersService,
     private jwtService: JwtService,
+    private readonly httpService: HttpService,
   ) {}
 
   private findOneOption(id: string): FindOneOptions<Auth> {
@@ -73,7 +87,13 @@ export class AuthService {
         throw new UnauthorizedException('Username or Password invalid');
       }
 
-      //CHECK TOKEN IS WORKING AND CANCEL
+      //CHECK VERIFY EMAIL
+      if (!accountEntity.user.is_verify_email)
+        throw new UnauthorizedException(
+          'Please check mail to verify account, https://mail.google.com/',
+        );
+
+      //CHECK TOKEN IS WORKING, THEN CANCEL IT
       const auth = await this.findOne(null, {
         where: {
           cancel: false,
@@ -114,5 +134,34 @@ export class AuthService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async resetPassword(jwt: Account) {
+    const generatePassword = Helper.generatePassword();
+    const optionMailer: ResetPasswordDto = {
+      to: [jwt.user.email],
+      subject: '[Reset Password] Generate new password',
+      template: 'reset-password',
+      context: {
+        username: jwt.username,
+        reset_password: generatePassword,
+      },
+    };
+    try {
+      const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
+        this.httpService.post(`/mailer/reset-password`, optionMailer).pipe(
+          catchError((error) => {
+            console.log('error', JSON.stringify(error));
+            throw `${error?.response?.data}`;
+          }),
+        ),
+      );
+    } catch (e) {
+      throw new BadRequestException('Send mail reset password failed');
+    }
+
+    return await this.accountService.update(jwt.account_id, {
+      password: await Helper.encryptPassword(generatePassword),
+    });
   }
 }
