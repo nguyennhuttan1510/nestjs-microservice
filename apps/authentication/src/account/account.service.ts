@@ -17,7 +17,11 @@ import { FindOneOptions, Repository, UpdateResult } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import Helper from '@authentication/utils/helper';
 import { AuthService } from '@authentication/auth/auth.service';
-import { AddressService } from '@authentication/address/address.service';
+import { HttpService } from '@nestjs/axios';
+import { catchError, firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
+import { Response } from '@app/interceptor';
+import { ResetPasswordDto } from 'apps/mail/src/dto/reset-password.dto';
 
 @Injectable()
 export class AccountService {
@@ -25,6 +29,7 @@ export class AccountService {
     @InjectRepository(Account) private accountRepository: Repository<Account>,
     @Inject(forwardRef(() => AuthService))
     readonly authService: AuthService,
+    private readonly httpService: HttpService,
   ) {}
 
   private optionFindAccount(id: number): FindOneOptions<Account> {
@@ -138,5 +143,34 @@ export class AccountService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async resetPassword(jwt: Account) {
+    const generatePassword = Helper.generatePassword();
+    const optionMailer: ResetPasswordDto = {
+      to: [jwt.user.email],
+      subject: '[Reset Password] Generate new password',
+      template: 'reset-password',
+      context: {
+        username: jwt.username,
+        reset_password: generatePassword,
+      },
+    };
+    try {
+      const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
+        this.httpService.post(`/mailer/reset-password`, optionMailer).pipe(
+          catchError((error) => {
+            console.log('error', JSON.stringify(error));
+            throw `${error?.response?.data}`;
+          }),
+        ),
+      );
+    } catch (e) {
+      throw new BadRequestException('Send mail reset password failed');
+    }
+
+    return await this.update(jwt.account_id, {
+      password: await Helper.encryptPassword(generatePassword),
+    });
   }
 }

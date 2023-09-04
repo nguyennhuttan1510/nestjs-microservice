@@ -40,6 +40,16 @@ export class AccountController {
     return this.accountService.findAll();
   }
 
+  @Get('reset-password')
+  async resetPassword(@Headers('jwt') jwt: Account): Promise<Response<any>> {
+    const mailer = await this.accountService.resetPassword(jwt);
+    return {
+      data: mailer,
+      status: true,
+      message: 'Send mail reset password success',
+    };
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.accountService.findOne(+id);

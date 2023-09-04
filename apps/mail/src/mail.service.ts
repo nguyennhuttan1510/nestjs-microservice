@@ -21,7 +21,7 @@ export class MailService {
         return value?.accepted;
       })
       .catch((e) => {
-        console.log('sendMail', e);
+        console.log('sendMail', JSON.stringify(e));
         throw new InternalServerErrorException('Send mail failed');
       });
   }
