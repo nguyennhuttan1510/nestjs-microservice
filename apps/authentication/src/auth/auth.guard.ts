@@ -9,10 +9,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from './decorators/public.decarators';
+import { IS_PUBLIC_KEY } from './decorators/public.decorators';
 import { AuthService } from '@authentication/auth/auth.service';
 import { Auth } from '@authentication/auth/entities/auth.entity';
 import { ALLOW_FIRST_ACCESS } from '@authentication/auth/decorators/allow_first_access.decorators';
+import { Account } from '@authentication/account/entities/account.entity';
+
+export type Token = Account & { session_id: string };
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -44,7 +47,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Request access token');
     }
 
-    let payload;
+    let payload: Token;
     try {
       payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_JWT,
@@ -62,7 +65,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       //CHECK SESSION IS CANCEL
-      await this.checkTokenCancel(payload?.session_id);
+      await this.checkTokenCancel(payload.session_id);
       if (!isAllowFirstAccess) {
         //CHECK IN PROGRESS INTI USER
         await this.checkIsInProgressInitUser(payload);
@@ -97,11 +100,11 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  private async checkIsInProgressInitUser(payload) {
+  private async checkIsInProgressInitUser(payload: Token) {
     await this.checkIsFirstTimeAccess(payload);
   }
 
-  private async checkIsFirstTimeAccess(payload) {
+  private async checkIsFirstTimeAccess(payload: Token) {
     if (payload.is_first_access)
       throw new ForbiddenException(
         'Can not any access, when you have not change password',

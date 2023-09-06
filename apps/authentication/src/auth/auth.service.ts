@@ -1,27 +1,20 @@
 import {
-  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository, UpdateResult } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { Auth } from '@authentication/auth/entities/auth.entity';
-import { User } from '@authentication/users/entities/user.entity';
 import { Account } from '@authentication/account/entities/account.entity';
 import { AccountService } from '@authentication/account/account.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@authentication/users/users.service';
 import Helper from '@authentication/utils/helper';
-import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { v4 as uuidV4 } from 'uuid';
-import { ResetPasswordDto } from '../../../mail/src/dto/reset-password.dto';
-import { AxiosResponse } from 'axios';
-import { Response } from '@app/interceptor';
-import { catchError, firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
+import { Logger } from 'winston';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +25,8 @@ export class AuthService {
     @Inject(forwardRef(() => UsersService))
     readonly userService: UsersService,
     private jwtService: JwtService,
-    private readonly httpService: HttpService,
+    @Inject('winston')
+    private readonly logger: Logger,
   ) {}
 
   private findOneOption(id: string): FindOneOptions<Auth> {
@@ -73,17 +67,19 @@ export class AuthService {
   async signin(
     account: Partial<Account>,
   ): Promise<Partial<{ access_token: string }>> {
+    this.logger.info('Returning suggestions...');
     try {
       //CHECK EXISTED ACCOUNT, COMPARE PASSWORD
       const { account: accountEntity, isExisted } =
         await this.accountService.checkExistAccount(account.username);
 
+      if (!isExisted) throw new NotFoundException('Not found account');
       const isMatchPassword = await Helper.comparePassword(
         account.password,
         accountEntity.password,
       );
 
-      if (!isExisted || !isMatchPassword) {
+      if (!isMatchPassword) {
         throw new UnauthorizedException('Username or Password invalid');
       }
 
@@ -134,34 +130,5 @@ export class AuthService {
     } catch (e) {
       throw e;
     }
-  }
-
-  async resetPassword(jwt: Account) {
-    const generatePassword = Helper.generatePassword();
-    const optionMailer: ResetPasswordDto = {
-      to: [jwt.user.email],
-      subject: '[Reset Password] Generate new password',
-      template: 'reset-password',
-      context: {
-        username: jwt.username,
-        reset_password: generatePassword,
-      },
-    };
-    try {
-      const mailer: AxiosResponse<Response<any>> = await firstValueFrom(
-        this.httpService.post(`/mailer/reset-password`, optionMailer).pipe(
-          catchError((error) => {
-            console.log('error', JSON.stringify(error));
-            throw `${error?.response?.data}`;
-          }),
-        ),
-      );
-    } catch (e) {
-      throw new BadRequestException('Send mail reset password failed');
-    }
-
-    return await this.accountService.update(jwt.account_id, {
-      password: await Helper.encryptPassword(generatePassword),
-    });
   }
 }

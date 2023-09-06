@@ -6,16 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
   Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Auth } from '@authentication/auth/entities/auth.entity';
 import { Account } from '@authentication/account/entities/account.entity';
 import { Response } from '@app/interceptor';
-import { Request } from 'express';
-import { Public } from '@authentication/auth/decorators/public.decarators';
+import { Public } from '@authentication/auth/decorators/public.decorators';
 
 @Controller('auth')
 export class AuthController {
@@ -49,16 +46,6 @@ export class AuthController {
   @Get()
   findAll() {
     return this.authService.findAll();
-  }
-
-  @Get('reset-password')
-  async resetPassword(@Headers('jwt') jwt: Account): Promise<Response<any>> {
-    const mailer = await this.authService.resetPassword(jwt);
-    return {
-      data: mailer,
-      status: true,
-      message: 'Send mail reset password success',
-    };
   }
 
   @Get(':id')

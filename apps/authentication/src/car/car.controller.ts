@@ -13,14 +13,11 @@ import { UpdateCarDto } from './dto/update-car.dto';
 import { Car } from '@authentication/car/entities/car.entity';
 import { Response } from '@app/interceptor';
 import { DeleteResult } from 'typeorm';
-import { MailerService } from '@nestjs-modules/mailer';
-import { MailService } from '../../../mail/src/mail.service';
 
 @Controller('car')
 export class CarController {
   constructor(
-    private readonly carService: CarService,
-    // private readonly mailerService: MailService,
+    private readonly carService: CarService, // private readonly mailerService: MailService,
   ) {}
 
   @Post()

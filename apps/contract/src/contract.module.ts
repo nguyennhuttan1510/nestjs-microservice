@@ -5,13 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContractEntity } from './entities/contract.entities';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
+import Helper from '@authentication/utils/helper';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.HOST_DATABASE,
+      host: process.env.HOST_DATABASE || Helper.getEn0Ipv4().address,
       port: parseInt(process.env.PORT_DATABASE),
       username: process.env.USER_DATABASE,
       password: process.env.PASSWORD_DATABASE,

@@ -1,4 +1,4 @@
-import { IsArray, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsIn, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class SendMailDTO {
   @IsString()
@@ -12,6 +12,7 @@ export class SendMailDTO {
   subject: string;
 
   @IsString()
+  @IsIn(['reset-password', 'confirm_verify_email'])
   template: string;
 
   @IsObject()

@@ -19,7 +19,7 @@ import { DeleteResult } from 'typeorm';
 import { AxiosResponse } from 'axios/index';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { Public } from '@authentication/auth/decorators/public.decarators';
+import { Public } from '@authentication/auth/decorators/public.decorators';
 import { ConfirmEmailDto } from '../../../mail/src/dto/confirm-email.dto';
 import Helper from '@authentication/utils/helper';
 

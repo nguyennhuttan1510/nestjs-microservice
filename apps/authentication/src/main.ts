@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { NestFactory } from '@nestjs/core';
 import { AuthenticationModule } from './authentication.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -5,7 +6,7 @@ import { HTTPExceptionFilter } from '@app/exception';
 import { ResponseInterceptor } from '@app/interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import process from 'process';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
     AuthenticationModule,
